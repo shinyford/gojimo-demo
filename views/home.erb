@@ -1,0 +1,20 @@
+<html>
+	<head>
+		<title>
+			GOJIMO: demo
+		</title>
+	</head>
+	<body>
+		<h1>GOJIMO demo</h1>
+		<% @quals.each do |qual|%>
+			<% if qual['subjects'].size > 0 %>
+				<div class="qual" id="q<%= qual['id'] %>">
+					<h2><%= qual['name'] %></h2>
+					<% qual['subjects'].each do |subj| %>
+						<div><%= subj['title'] %></div>
+					<% end %>
+				</div>
+			<% end %>
+		<% end %>
+	</body>
+</html>
