@@ -42,7 +42,7 @@ class Qual
 		def update_or_create(attrs)
 			q = first_or_create(:gid => attrs['id'])
 			q.update_attrs(attrs)
-			q.save # puts ">>> #{q.name}: #{q.save} #{q.dirty?}"
+			q.save
 			q
 		end
 

@@ -29,7 +29,7 @@ class Subj
 		def update_or_create(attrs)
 			s = first_or_create(:gid => attrs['id'])
 			s.update_attrs(attrs)
-			s.save # puts ">>>> #{s.title}: #{s.save} #{s.dirty?}"
+			s.save
 			s
 		end
 

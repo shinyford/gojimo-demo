@@ -1,15 +1,28 @@
 <html>
 	<head>
 		<link	rel="stylesheet" href="style/gojimo-demo.css" type="text/css" />
-		<title>
-			GOJIMO: demo
-		</title>
+		<title>GOJIMO: demo</title>
+		<script	type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
+		<script type="text/javascript">
+
+		$(window).load(function() {
+			$('h2').click(function() {
+				$('ul').hide();
+				$('#ul'+this.id).show();
+			});
+		});
+
+		</script>
 	</head>
 	<body>
+		<h1>
+			<div>Gojimo technical test demo</div>
+			<div>(<a href="/reset">Click here to reload data</a>)</div>
+		</h1>
 		<% @quals.each_with_index do |qual, idx| %>
 			<div class="qual">
-				<h1 class="row<%= idx&1 %>"><%= qual.full_name %></h1>
-				<ul>
+				<h2 class="row<%= idx&1 %>" id="<%= qual.gid %>"><%= qual.full_name %></h2>
+				<ul id="ul<%= qual.gid %>">
 					<% qual.subjs.sort.each do |subj| %>
 						<% if subj.colour.nil? or subj.colour == '' %>
 							<li><%= subj.title %></li>

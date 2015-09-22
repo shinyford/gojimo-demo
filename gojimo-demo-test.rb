@@ -117,15 +117,15 @@ class GojimoDemoTest < Test::Unit::TestCase
     assert last_response.ok?
   end
 
-	def test_qual_h1s_created
+	def test_qual_h2s_created
 		Qual.from_json('[{"id":"123","name":"foo","subjects":[{"id":"100"}]}]')
 		get('/')
-		assert last_response.body.include?('<h1 class="row0">foo</h1>')
+		assert last_response.body.include?('<h2 class="row0" id="123">foo</h2>')
 	end
 
 	def test_app_reads_from_feed_in_absence_of_data
 		get('/')
-		assert last_response.body.include?('<h1 class="row0">')
+		assert last_response.body.include?('<h2 class="row0"')
 	end
 
 	def test_subj_lis_created
