@@ -1,19 +1,24 @@
 <html>
 	<head>
+		<link	rel="stylesheet" href="style/gojimo-demo.css" type="text/css" />
 		<title>
 			GOJIMO: demo
 		</title>
 	</head>
 	<body>
-		<% @quals.each do |qual| %>
-			<h1><%= qual.name %></h1>
-			<% qual.subjs.each do |subj| %>
-				<% if subj.colour.nil? or subj.colour == '' %>
-					<div><%= subj.title %></div>
-				<% else %>
-					<div style="background-color:<%= subj.colour %>"><%= subj.title %></div>
-				<% end %>
-			<% end %>
+		<% @quals.each_with_index do |qual, idx| %>
+			<div class="qual">
+				<h1 class="row<%= idx&1 %>"><%= qual.full_name %></h1>
+				<ul>
+					<% qual.subjs.sort.each do |subj| %>
+						<% if subj.colour.nil? or subj.colour == '' %>
+							<li><%= subj.title %></li>
+						<% else %>
+							<li style="background-color:<%= subj.colour %>"><%= subj.title %></li>
+						<% end %>
+					<% end %>
+				</ul>
+			</div>
 		<% end %>
 	</body>
 </html>

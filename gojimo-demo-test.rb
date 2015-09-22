@@ -1,6 +1,6 @@
 ENV['RACK_ENV'] = 'test'
 
-require './gojimo-demo.rb'
+require './gojimo-demo'
 
 require 'test/unit'
 require 'rack/test'
@@ -13,6 +13,8 @@ class GojimoDemoTest < Test::Unit::TestCase
   end
 
 	def setup
+		Qual.all.destroy!
+		Subj.all.destroy!
 	end
 
 
@@ -51,6 +53,12 @@ class GojimoDemoTest < Test::Unit::TestCase
 		assert q.saved?
 	end
 
+	def test_qual_gets_country
+		q = Qual.from_json('{"id":"123","name":"English","country":{"name":"United Kingdom"},"subjects":[]}')
+		assert q.country == 'United Kingdom'
+		assert q.full_name == 'English (United Kingdom)'
+	end
+
 	# subj model tests
 
 	def test_subj_can_derive_gid_from_id
@@ -65,26 +73,41 @@ class GojimoDemoTest < Test::Unit::TestCase
 		assert s.updated_at >= n1
 	end
 
+	def test_subjs_are_returned_in_alpha_order
+		q = Qual.from_json('{"id":"123","subjects":[{"id":"123","title":"mmm"},{"id":"124","title":"ccc"},{"id":"125","title":"ddd"}]}')
+		ss = q.subjects
+		assert_equal '124', ss[0].gid
+		assert_equal '125', ss[1].gid
+		assert_equal '123', ss[2].gid
+	end
+
 	# data relationships
 
 	def test_qual_has_subjects
 		q = Qual.from_json('{"id":"123","subjects":[{"id":"123"}]}')
-		assert q.subjs.length == 1
-		assert q.subjs.first.qual == q
+		assert_equal 1, q.subjs.length
+		assert q.subjs.first.quals.include?(q)
 		assert q.subjs.first.saved?
 	end
 
 	def test_qual_has_multiple_subjects
 		q = Qual.from_json('{"id":"123","subjects":[{"id":"123"},{"id":"124"}]}')
-		assert q.subjs.length == 2
-		assert q.subjs.last.qual == q
+		assert_equal 2, q.subjs.length
+		assert q.subjs.last.quals.include?(q)
 	end
 
 	# multiple qualifications
 
 	def test_can_have_multiple_qualifications
 		qq = Qual.from_json('[{"id":"123","subjects":[]},{"id":"134","subjects":[]}]')
-		assert qq.length == 2
+		assert_equal 2, qq.length
+	end
+
+	def test_only_quals_with_subjs
+		Qual.from_json('[{"id":"123","subjects":[]},{"id":"134","subjects":[{"id":"100"}]}]')
+
+		assert_equal 2, Qual.all.length
+		assert_equal 1, Qual.fetch_all.length
 	end
 
 	# webapp tests
@@ -95,40 +118,37 @@ class GojimoDemoTest < Test::Unit::TestCase
   end
 
 	def test_qual_h1s_created
-		Qual.all.destroy!
-		Subj.all.destroy!
-
-		Qual.from_json('[{"id":"123","name":"foo","subjects":[]}]')
-
+		Qual.from_json('[{"id":"123","name":"foo","subjects":[{"id":"100"}]}]')
 		get('/')
-		assert last_response.body.include?('<h1>foo</h1>')
+		assert last_response.body.include?('<h1 class="row0">foo</h1>')
 	end
 
 	def test_app_reads_from_feed_in_absence_of_data
-		Qual.all.destroy!
-		Subj.all.destroy!
 		get('/')
-		assert last_response.body.include?('<h1>')
+		assert last_response.body.include?('<h1 class="row0">')
 	end
 
-	def test_subj_divs_created
-		Qual.all.destroy!
-		Subj.all.destroy!
-
+	def test_subj_lis_created
 		Qual.from_json('[{"id":"123","name":"foo","subjects":[{"id":"123","title":"bar"}]}]')
 
 		get('/')
-		assert last_response.body.include?('<div>bar</div>')
+		assert last_response.body.include?('<li>bar</li>')
 	end
 
 	def test_subj_coloured_correctly
-		Qual.all.destroy!
-		Subj.all.destroy!
-
 		Qual.from_json('[{"id":"123","name":"foo","subjects":[{"id":"123","colour":"puce"}]}]')
-
 		get('/')
-		assert last_response.body.include?('<div style="background-color:puce"></div>')
+		assert last_response.body.include?('<li style="background-color:puce"></li>')
+	end
+
+	def test_reset
+		Qual.from_json('[{"id":"123","name":"foo","subjects":[{"id":"123","title":"bar"}]}]')
+		assert_equal 1, Qual.all.length
+		get('/')
+		assert_equal 1, Qual.all.length
+		get('/reset')
+		get('/')
+		assert Qual.all.length > 1
 	end
 
 end

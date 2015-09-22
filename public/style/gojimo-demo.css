@@ -1,0 +1,28 @@
+
+html,body {
+	font-family: Calibri,Verdana,Arial,sans-serif;
+	color: black;
+}
+
+h1 {
+	text-size: 20pt;
+	padding: 0;
+	margin: 0;
+	margin-top: 8px;
+}
+
+.row0 {
+	background-color: #884444
+}
+
+.row1 {
+	background-color: #448844
+}
+
+.qual ul {
+#	display: none;
+	text-size: 10pt;
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+}
