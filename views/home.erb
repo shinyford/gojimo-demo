@@ -5,15 +5,14 @@
 		</title>
 	</head>
 	<body>
-		<h1>GOJIMO demo</h1>
-		<% @quals.each do |qual|%>
-			<% if qual['subjects'].size > 0 %>
-				<div class="qual" id="q<%= qual['id'] %>">
-					<h2><%= qual['name'] %></h2>
-					<% qual['subjects'].each do |subj| %>
-						<div><%= subj['title'] %></div>
-					<% end %>
-				</div>
+		<% @quals.each do |qual| %>
+			<h1><%= qual.name %></h1>
+			<% qual.subjs.each do |subj| %>
+				<% if subj.colour.nil? or subj.colour == '' %>
+					<div><%= subj.title %></div>
+				<% else %>
+					<div style="background-color:<%= subj.colour %>"><%= subj.title %></div>
+				<% end %>
 			<% end %>
 		<% end %>
 	</body>

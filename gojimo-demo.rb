@@ -2,8 +2,17 @@
 
 require 'net/http'
 require 'rubygems'
+require 'dm-core'
+require 'dm-migrations'
+require 'dm-validations'
 require 'sinatra'
-require 'json'
+
+GOJIMODEMO_DB = "#{Dir.pwd}/db-gojimo-demo.sqlite3"
+
+DataMapper.setup(:default, 'sqlite3://' + GOJIMODEMO_DB)
+require './models/qual.rb'
+require './models/subj.rb'
+DataMapper.auto_upgrade!
 
 # not_found do
 #   halt(404, "PI doesn't know this ditty\n") unless request.path.match(/^(\/(images|css)\/.*)$/)
@@ -19,17 +28,8 @@ require 'json'
 # 	redirect request.path
 # end
 
-def read_from_interwebs(url)
-  uri = URI.parse(url)
-  req = Net::HTTP::Get.new(uri)
-  http = Net::HTTP.new(uri.hostname, uri.port)
-  resp = http.request(req)
-  resp.body
-end
-
 get '/' do
-	data = read_from_interwebs('http://api.gojimo.net/api/v4/qualifications')
-	@quals = JSON.parse(data)
+	@quals = Qual.fetch_all
 	erb :home
 end
 

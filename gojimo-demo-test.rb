@@ -5,105 +5,6 @@ require './gojimo-demo.rb'
 require 'test/unit'
 require 'rack/test'
 
-TESTJSON = <<EOC
-[
-	{
-		"id": "qual-01",
-		"name": "Qualification 1",
-		"subjects": [
-			{
-				"id": "subj Q1-1",
-				"title": "Subject Q1-1",
-				"link": "/api/v4/subjects/q1-1",
-				"colour": "#FF0000"
-			},
-			{
-				"id": "subj Q1-2",
-				"title": "Subject Q1-2",
-				"link": "/api/v4/subjects/q1-2",
-				"colour": "#FFFF00"
-			},
-			{
-				"id": "subj Q1-3",
-				"title": "Subject Q1-3",
-				"link": "/api/v4/subjects/q1-3",
-				"colour": "#FF00FF"
-			}
-		],
-		"default_products": [ ],
-		"created_at": "2014-04-12T10:06:33.000Z",
-		"updated_at": "2014-04-12T10:06:33.000Z",
-		"link": "/api/v4/qualifications/q1"
-	},
-	{
-		"id": "qual-02",
-		"name": "Qualification 2",
-		"subjects": [
-			{
-				"id": "subj Q2-1",
-				"title": "Subject Q2-1",
-				"link": "/api/v4/subjects/q2-1",
-				"colour": "#FFFF00"
-			},
-			{
-				"id": "subj Q2-2",
-				"title": "Subject Q2-2",
-				"link": "/api/v4/subjects/q2-2",
-				"colour": "#00FF00"
-			},
-			{
-				"id": "subj Q2-3",
-				"title": "Subject Q2-3",
-				"link": "/api/v4/subjects/q2-3",
-				"colour": "#00FFFF"
-			}
-		],
-		"default_products": [ ],
-		"created_at": "2014-04-12T10:06:33.000Z",
-		"updated_at": "2014-04-12T10:06:33.000Z",
-		"link": "/api/v4/qualifications/q2"
-	},
-	{
-		"id": "qual-03",
-		"name": "Qualification 3",
-		"subjects": [
-			{
-				"id": "subj Q3-1",
-				"title": "Subject Q3-1",
-				"link": "/api/v4/subjects/q3-1",
-				"colour": "#FF00FF"
-			},
-			{
-				"id": "subj Q3-2",
-				"title": "Subject Q3-2",
-				"link": "/api/v4/subjects/q3-2",
-				"colour": "#00FFFF"
-			},
-			{
-				"id": "subj Q3-3",
-				"title": "Subject Q3-3",
-				"link": "/api/v4/subjects/q3-3",
-				"colour": "#0000FF"
-			}
-		],
-		"default_products": [ ],
-		"created_at": "2014-04-12T10:06:33.000Z",
-		"updated_at": "2014-04-12T10:06:33.000Z",
-		"link": "/api/v4/qualifications/q3"
-	}
-]
-EOC
-
-@thisjson = nil
-
-# clumsy mocking
-def setup_interwebs_response(resp)
-	@@thisjson = resp
-end
-def read_from_interwebs(url)
-	@@thisjson
-end
-
 class GojimoDemoTest < Test::Unit::TestCase
   include Rack::Test::Methods
 
@@ -112,7 +13,78 @@ class GojimoDemoTest < Test::Unit::TestCase
   end
 
 	def setup
-		setup_interwebs_response(TESTJSON)
+	end
+
+
+	# qual model tests
+
+	def test_qual_created
+		q = Qual.from_json('{"id":"123","subjects":[]}')
+		assert q.instance_of?(Qual)
+	end
+
+	def test_qual_created_with_name
+		q = Qual.from_json('{"id":"123","name":"foo","subjects":[]}')
+		assert q.name == 'foo'
+	end
+
+	def test_qual_created_with_different_name
+		q = Qual.from_json('{"id":"123","name":"bar","subjects":[]}')
+		assert q.name == 'bar'
+	end
+
+	def test_qual_can_derive_gid_from_id
+		q = Qual.from_json('{"id":"123","subjects":[]}')
+		assert q.gid == '123'
+	end
+
+	def test_qual_can_derive_updated_at
+		n1 = DateTime.now
+		q = Qual.from_json('{"id":"123","subjects":[]}')
+		n2 = DateTime.now
+		assert q.updated_at >= n1
+		assert q.updated_at <= n2
+	end
+
+	def test_quals_persisted
+		q = Qual.from_json('{"id":"123","subjects":[]}')
+		assert q.saved?
+	end
+
+	# subj model tests
+
+	def test_subj_can_derive_gid_from_id
+		s = Subj.update_or_create('id' => '123')
+		assert s.gid == '123'
+	end
+
+	def test_subj_can_derive_updated_at
+		n1 = DateTime.now
+		s = Subj.update_or_create('id' => '123')
+		n2 = DateTime.now
+		assert s.updated_at >= n1
+	end
+
+	# data relationships
+
+	def test_qual_has_subjects
+		q = Qual.from_json('{"id":"123","subjects":[{"id":"123"}]}')
+		assert q.subjs.length == 1
+		assert q.subjs.first.qual == q
+		assert q.subjs.first.saved?
+	end
+
+	def test_qual_has_multiple_subjects
+		q = Qual.from_json('{"id":"123","subjects":[{"id":"123"},{"id":"124"}]}')
+		assert q.subjs.length == 2
+		assert q.subjs.last.qual == q
+	end
+
+	# multiple qualifications
+
+	def test_can_have_multiple_qualifications
+		qq = Qual.from_json('[{"id":"123","subjects":[]},{"id":"134","subjects":[]}]')
+		assert qq.length == 2
 	end
 
 	# webapp tests
@@ -122,34 +94,41 @@ class GojimoDemoTest < Test::Unit::TestCase
     assert last_response.ok?
   end
 
-	def test_contains_q1
-		get '/'
-		assert last_response.body.include?('<h2>Qualification 1</h2>')
+	def test_qual_h1s_created
+		Qual.all.destroy!
+		Subj.all.destroy!
+
+		Qual.from_json('[{"id":"123","name":"foo","subjects":[]}]')
+
+		get('/')
+		assert last_response.body.include?('<h1>foo</h1>')
 	end
 
-	def test_contains_quals_from_json
-		setup_interwebs_response('[{"name":"INTERLOPER","subjects":[]}]')
-		get '/'
-		assert last_response.body.include?('<h2>INTERLOPER</h2>')
+	def test_app_reads_from_feed_in_absence_of_data
+		Qual.all.destroy!
+		Subj.all.destroy!
+		get('/')
+		assert last_response.body.include?('<h1>')
 	end
 
-	def test_contains_all_quals_from_json
-		setup_interwebs_response('[{"name":"INTERLOPER1","subjects":[]},{"name":"INTERLOPER2","subjects":[]}]')
-		get '/'
-		assert last_response.body.include?('<h2>INTERLOPER2</h2>')
-		assert last_response.body.include?('<h2>INTERLOPER1</h2>')
+	def test_subj_divs_created
+		Qual.all.destroy!
+		Subj.all.destroy!
+
+		Qual.from_json('[{"id":"123","name":"foo","subjects":[{"id":"123","title":"bar"}]}]')
+
+		get('/')
+		assert last_response.body.include?('<div>bar</div>')
 	end
 
-	def test_contains_subjects
-		get '/'
-		assert last_response.body.include?('<div>Subject Q1-1</div>')
-	end
+	def test_subj_coloured_correctly
+		Qual.all.destroy!
+		Subj.all.destroy!
 
-	def test_contains_appropriate_subjects
-		get '/'
-		assert last_response.body.include?('<div>Subject Q1-1</div>')
-		assert last_response.body.include?('<div>Subject Q2-2</div>')
-		assert last_response.body.include?('<div>Subject Q3-3</div>')
+		Qual.from_json('[{"id":"123","name":"foo","subjects":[{"id":"123","colour":"puce"}]}]')
+
+		get('/')
+		assert last_response.body.include?('<div style="background-color:puce"></div>')
 	end
 
 end
