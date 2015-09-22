@@ -20,8 +20,8 @@
 			<div>(<a href="/reset">Click here to reload data</a>)</div>
 		</h1>
 		<% @quals.each_with_index do |qual, idx| %>
-			<div class="qual">
-				<h2 class="row<%= idx&1 %>" id="<%= qual.gid %>"><%= qual.full_name %></h2>
+			<div class="row<%= idx&1 %>">
+				<h2 id="<%= qual.gid %>"><%= qual.full_name %></h2>
 				<ul id="ul<%= qual.gid %>">
 					<% qual.subjs.sort.each do |subj| %>
 						<% if subj.colour.nil? or subj.colour == '' %>

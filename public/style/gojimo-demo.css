@@ -1,30 +1,48 @@
 
 html,body {
-	font-family: Calibri,Verdana,Arial,sans-serif;
+	font-family: Calibri,Helvetica,sans-serif;
 	font-size: 10pt;
 	color: black;
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+
+h1 {
+	background-color: rgb(243, 156, 18);
+	font-weight: bold;
+	color: white;
+	padding: 0;
+	margin: 0;
+	border: 0;
+	width: 100%;
+}
+
+h1 a {
+	color: white;
 }
 
 h2 {
 	padding: 0;
 	padding-left: 8px;
 	margin: 0;
-	margin-top: 8px;
+	margin-top: 1px;
 }
 
 .row0 {
-	background-color: #884444
+	background-color: rgb(241, 244, 248);
 }
 
 .row1 {
-	background-color: #448844
+	background-color: white;
 }
 
-.qual ul {
+ul {
 	display: none;
 	list-style-type: none;
-	padding: 0;
+	padding-left: 20px;
 	margin: 0;
+	margin-bottom: 8px;
 }
 
 @media (max-width: 600px) {
