@@ -1,7 +1,7 @@
 # gojimo-demo
 Programming exercise for Gojimo
 
-This demo was developed test-first, tests added and made to pass pretty-much in the order they appear in gojimo-demo-test.rb.
+This demo was developed test-first (tests added and made to pass pretty-much in the order they appear in gojimo-demo-test.rb) using Sinatra, DataMapper and jQuery.
 
 Note that I've limited this to displaying only those qualifications for which subjects exist - many in the feed json were subjectless.
 
